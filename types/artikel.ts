@@ -14,5 +14,11 @@ export interface Artikel {
   author: string;
   thumbnail: string;
   description: string;
+  content?: string;
+  enclosure?: {
+    link: string;
+    type: string;
+    length: number;
+  };
   categories: string[];
 }

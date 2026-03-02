@@ -1,20 +1,37 @@
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
-import Colors from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
+
+const Colors = {
+  primary: '#5B7FA6',
+  text: {
+    light: '#BBBBBB',
+  },
+  white: '#FFFFFF',
+  border: '#E8E3D8',
+};
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface TabIconProps {
-  icon: string;
+  iconName: IoniconsName;
   label: string;
   focused: boolean;
 }
 
-function TabIcon({ icon, label, focused }: TabIconProps) {
+function TabIcon({ iconName, label, focused }: TabIconProps) {
   return (
     <View style={styles.tabItem}>
-      <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>
-        {icon}
-      </Text>
-      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>
+      <Ionicons
+        name={iconName}
+        size={22}
+        color={focused ? Colors.primary : Colors.text.light}
+      />
+      <Text
+        style={[styles.tabLabel, focused && styles.tabLabelActive]}
+        numberOfLines={1}
+        ellipsizeMode="clip"
+      >
         {label}
       </Text>
     </View>
@@ -34,7 +51,11 @@ export default function TabsLayout() {
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="🏠" label="Beranda" focused={focused} />
+            <TabIcon
+              iconName={focused ? 'home' : 'home-outline'}
+              label="Beranda"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -43,7 +64,11 @@ export default function TabsLayout() {
         name="quran"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="📖" label="Al-Quran" focused={focused} />
+            <TabIcon
+              iconName={focused ? 'book' : 'book-outline'}
+              label="Al-Quran"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -52,7 +77,11 @@ export default function TabsLayout() {
         name="artikel"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="📰" label="Artikel" focused={focused} />
+            <TabIcon
+              iconName={focused ? 'newspaper' : 'newspaper-outline'}
+              label="Artikel"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -61,7 +90,11 @@ export default function TabsLayout() {
         name="pengaturan"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="⚙️" label="Pengaturan" focused={focused} />
+            <TabIcon
+              iconName={focused ? 'settings' : 'settings-outline'}
+              label="Pengaturan"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -70,7 +103,11 @@ export default function TabsLayout() {
         name="ai"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="🤖" label="AI" focused={focused} />
+            <TabIcon
+              iconName={focused ? 'sparkles' : 'sparkles-outline'}
+              label="AI"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -83,31 +120,26 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    height: 65,
+    height: 62,
     paddingBottom: 8,
-    paddingTop: 8,
+    paddingTop: 6,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: 70,
     gap: 2,
-  },
-  tabIcon: {
-    fontSize: 22,
-    opacity: 0.4,
-  },
-  tabIconActive: {
-    opacity: 1,
   },
   tabLabel: {
     fontSize: 10,
     fontFamily: 'Poppins-Regular',
     color: Colors.text.light,
+    textAlign: 'center',
   },
   tabLabelActive: {
     color: Colors.primary,

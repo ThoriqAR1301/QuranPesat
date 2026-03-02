@@ -1,98 +1,410 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ImageBackground,
+  StatusBar,
+} from 'react-native';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import Colors from '@/constants/Colors';
+import { getHijriyahDate } from '@/services/hijriyahService';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const WAKTU_SHOLAT = [
+  { nama: 'Subuh', waktu: '04:43', icon: 'partly-sunny-outline' },
+  { nama: 'Dzuhur', waktu: '12:09', icon: 'sunny-outline' },
+  { nama: 'Ashar', waktu: '15:12', icon: 'cloud-outline' },
+  { nama: 'Maghrib', waktu: '18:15', icon: 'cloudy-night-outline' },
+  { nama: "Isya'", waktu: '19:24', icon: 'moon-outline' },
+];
 
-export default function HomeScreen() {
+const MENU_BERANDA = [
+  { id: 1, nama: 'Al-Quran', icon: 'book-outline', route: '/(tabs)/quran' },
+  { id: 2, nama: 'Doa Harian', icon: 'chatbubble-outline', route: '/menu/doa' },
+  { id: 3, nama: 'Dzikir Duha', icon: 'heart-outline', route: '/menu/dzikir' },
+  { id: 4, nama: 'Hadits', icon: 'reader-outline', route: '/menu/hadits' },
+  { id: 5, nama: 'Arah Kiblat', icon: 'compass-outline', route: '/menu/arah-kiblat' },
+  { id: 6, nama: 'Donasi', icon: 'gift-outline', route: '/menu/donasi' },
+  { id: 7, nama: 'Asmaul Husna', icon: 'albums-outline', route: '/menu/asmaul-husna' },
+  { id: 8, nama: 'Lainnya', icon: 'grid-outline', route: '/menu/lainnya' },
+];
+
+const DOA_SECTION = [
+  {
+    id: 1,
+    nama: 'Fr',
+    judul: 'Doa Untuk Kesembuhan Ibu',
+    isi: 'Mohon Doanya Untuk Kesembuhan Ibu Saya Yang Sedang Sakit. Semoga Allah...',
+    waktu: '5',
+  },
+  {
+    id: 2,
+    nama: 'Tah',
+    judul: 'Doa Kelancaran Ujian',
+    isi: 'Mohon Doanya Untuk Kelancaran Ujian Saya Minggu Depan...',
+    waktu: '3',
+  },
+];
+
+export default function BerandaScreen() {
+  const [hijriyah, setHijriyah] = useState('12 Ramadan 1447 H');
+  const [lokasi] = useState('Bogor, Indonesia');
+  const [jamSekarang, setJamSekarang] = useState('');
+  const [countdown] = useState('07:29:10');
+
+  useEffect(() => {
+    setHijriyah(getHijriyahDate());
+    const interval = setInterval(() => {
+      const now = new Date();
+      const jam = now.getHours().toString().padStart(2, '0');
+      const menit = now.getMinutes().toString().padStart(2, '0');
+      setJamSekarang(`${jam}.${menit}`);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <ScrollView showsVerticalScrollIndicator={false}>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <ImageBackground
+          source={require('@/assets/images/Element.png')}
+          style={styles.header}
+          imageStyle={styles.headerImage}
+        >
+          <View style={styles.headerOverlay} />
+
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={styles.hijriyahText}>{hijriyah}</Text>
+              <Text style={styles.lokasiText}>{lokasi}</Text>
+            </View>
+            <TouchableOpacity>
+              <Ionicons name="notifications-outline" size={26} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.jamContainer}>
+            <Text style={styles.jamText}>{jamSekarang}</Text>
+            <Text style={styles.countdownText}>Subuh Dalam  {countdown}</Text>
+          </View>
+
+          <View style={styles.waktuSholatRow}>
+            {WAKTU_SHOLAT.map((item, index) => (
+              <View key={index} style={styles.waktuSholatItem}>
+                <Ionicons
+                  name={item.icon as any}
+                  size={18}
+                  color="rgba(255,255,255,0.85)"
+                />
+                <Text style={styles.waktuSholatNama}>{item.nama}</Text>
+                <Text style={styles.waktuSholatWaktu}>{item.waktu}</Text>
+              </View>
+            ))}
+          </View>
+        </ImageBackground>
+
+        <View style={styles.content}>
+
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Cari Surat, Doa, Artikel, Hadits ..."
+              placeholderTextColor={Colors.text.light}
+            />
+            <Ionicons name="search-outline" size={20} color={Colors.text.light} />
+          </View>
+
+          <View style={styles.menuGrid}>
+            {MENU_BERANDA.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.menuItem}
+                onPress={() => router.push(item.route as any)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.menuIconBox}>
+                  <Ionicons
+                    name={item.icon as any}
+                    size={24}
+                    color={Colors.primary}
+                  />
+                </View>
+                <Text style={styles.menuNama}>{item.nama}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.ramadanCard}>
+            <Text style={styles.ramadanEmoji}>🌙</Text>
+            <View>
+              <Text style={styles.ramadanTitle}>Ramadhan Mubarak!</Text>
+              <Text style={styles.ramadanSubtitle}>
+                Selamat Menjalankan Ibadah Puasa
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.doaSection}>
+            <View style={styles.doaSectionHeader}>
+              <Text style={styles.doaSectionTitle}>Aminkan Doa Saudaramu</Text>
+              <TouchableOpacity>
+                <Text style={styles.doaSectionLink}>Buat Doa +</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginHorizontal: -20 }}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+            >
+              {DOA_SECTION.map((item) => (
+                <View key={item.id} style={styles.doaCard}>
+                  <View style={styles.doaCardHeader}>
+                    <View style={styles.doaAvatar}>
+                      <Text style={styles.doaAvatarText}>{item.nama}</Text>
+                    </View>
+                    <Text style={styles.doaWaktu}>{item.waktu} Jam Lalu</Text>
+                  </View>
+                  <Text style={styles.doaJudul}>{item.judul}</Text>
+                  <Text style={styles.doaIsi} numberOfLines={2}>
+                    {item.isi}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+
+        </View>
+
+        <View style={{ height: 80 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
   },
-  stepContainer: {
-    gap: 8,
+
+  header: {
+    height: 320,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    paddingTop: 50,
+  },
+  headerImage: {
+    resizeMode: 'cover',
+  },
+  headerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(20, 30, 40, 0.45)',
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  hijriyahText: {
+    color: Colors.white,
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 16,
+  },
+  lokasiText: {
+    color: 'rgba(255,255,255,0.85)',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
+    marginTop: 2,
+  },
+  jamContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  jamText: {
+    color: Colors.white,
+    fontFamily: 'Poppins-Bold',
+    fontSize: 64,
+    lineHeight: 72,
+  },
+  countdownText: {
+    color: 'rgba(255,255,255,0.75)',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
+  },
+  waktuSholatRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  waktuSholatItem: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 2,
+  },
+  waktuSholatNama: {
+    color: 'rgba(255,255,255,0.85)',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 11,
+  },
+  waktuSholatWaktu: {
+    color: Colors.white,
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 12,
+  },
+
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 30,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
+    color: Colors.text.primary,
+  },
+
+  menuGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  menuItem: {
+    width: '23%',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 6,
+  },
+  menuIconBox: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: '#E8EDF2',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuNama: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 11,
+    color: Colors.text.primary,
+    textAlign: 'center',
+  },
+
+  ramadanCard: {
+    backgroundColor: Colors.ramadanCard,
+    borderRadius: 16,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 24,
+  },
+  ramadanEmoji: {
+    fontSize: 36,
+  },
+  ramadanTitle: {
+    color: Colors.white,
+    fontFamily: 'Poppins-Bold',
+    fontSize: 16,
+  },
+  ramadanSubtitle: {
+    color: 'rgba(255,255,255,0.75)',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  doaSection: {
+    marginBottom: 20,
+  },
+  doaSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  doaSectionTitle: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 15,
+    color: Colors.text.primary,
+  },
+  doaSectionLink: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 13,
+    color: Colors.primary,
+  },
+  doaCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    padding: 14,
+    width: 200,
+    marginRight: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  doaCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  doaAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  doaAvatarText: {
+    color: Colors.white,
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 11,
+  },
+  doaWaktu: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 11,
+    color: Colors.text.light,
+  },
+  doaJudul: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 13,
+    color: Colors.text.primary,
+    marginBottom: 4,
+  },
+  doaIsi: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 12,
+    color: Colors.text.secondary,
+    lineHeight: 18,
   },
 });
