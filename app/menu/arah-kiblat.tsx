@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  ImageBackground,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
@@ -164,6 +165,15 @@ export default function ArahKiblatScreen() {
     return Math.abs(diff);
   };
 
+  const getInstruksi = (): string => {
+    if (selisihArah() < 5) return 'Menghadap Kiblat! 🕋';
+    let diff = arahKiblat - kompas;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+    if (diff > 0) return `Putar ke kanan ${Math.round(Math.abs(diff))}°`;
+    return `Putar ke kiri ${Math.round(Math.abs(diff))}°`;
+  };
+
   const isKiblat = selisihArah() < 5;
 
   if (loading) {
@@ -197,216 +207,106 @@ export default function ArahKiblatScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={22} color={Colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Arah Kiblat</Text>
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={initLokasi}
-        >
-          <Ionicons
-            name="refresh-outline"
-            size={22}
-            color={Colors.text.primary}
-          />
-        </TouchableOpacity>
-      </View>
+      <ImageBackground
+        source={require('@/assets/images/Kabah.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
 
-      <View style={styles.content}>
-
-        <View style={styles.lokasiCard}>
-          <View style={styles.lokasiIconBox}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={22} color={Colors.text.primary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Arah Kiblat</Text>
+          <TouchableOpacity style={styles.menuButton}>
             <Ionicons
-              name="location"
-              size={20}
-              color={Colors.primary}
+              name="ellipsis-vertical"
+              size={22}
+              color={Colors.text.primary}
             />
-          </View>
-          <View style={styles.lokasiInfo}>
-            <Text style={styles.lokasiKota}>{lokasi?.kota}</Text>
-            <Text style={styles.lokasiKoord}>
-              {lokasi?.lat.toFixed(4)}°, {lokasi?.lng.toFixed(4)}°
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.lokasiContainer}>
+          <View style={styles.lokasiRow}>
+            <Ionicons
+              name="location-outline"
+              size={18}
+              color={Colors.text.primary}
+            />
+            <Text style={styles.lokasiKota}>
+              {lokasi?.kota}, Indonesia
             </Text>
           </View>
-          <View
-            style={[
-              styles.akurasiBadge,
-              {
-                backgroundColor:
-                  akurasi === 'baik'
-                    ? Colors.green + '22'
-                    : akurasi === 'sedang'
-                    ? Colors.accent + '22'
-                    : Colors.red + '22',
-              },
-            ]}
-          >
-            <Text
+          <Text style={styles.instruksiText}>{getInstruksi()}</Text>
+        </View>
+
+        <View style={styles.kompasArea}>
+          <View style={styles.kompasWrapper}>
+
+            <View style={styles.tengahPutih} />
+
+            <Animated.View
               style={[
-                styles.akurasiText,
+                styles.jarumContainer,
                 {
-                  color:
-                    akurasi === 'baik'
-                      ? Colors.green
-                      : akurasi === 'sedang'
-                      ? Colors.accent
-                      : Colors.red,
+                  transform: [
+                    {
+                      rotate: rotasiKompas.interpolate({
+                        inputRange: [-360, 360],
+                        outputRange: ['-360deg', '360deg'],
+                      }),
+                    },
+                  ],
                 },
               ]}
             >
-              {akurasi === 'baik'
-                ? '● Akurasi Baik'
-                : akurasi === 'sedang'
-                ? '● Sedang'
-                : '● Buruk'}
-            </Text>
-          </View>
-        </View>
+              <View style={styles.jarumAtas} />
+              <View style={styles.jarumBawah} />
+            </Animated.View>
 
-        <View style={styles.kompasContainer}>
-
-          <View
-            style={[
-              styles.statusKiblat,
-              { backgroundColor: isKiblat ? Colors.green + '18' : Colors.primary + '12' },
-            ]}
-          >
-            <Text style={styles.statusKiblatEmoji}>
-              {isKiblat ? '🕋' : '🧭'}
-            </Text>
-            <Text
+            <Animated.View
               style={[
-                styles.statusKiblatText,
-                { color: isKiblat ? Colors.green : Colors.primary },
+                styles.jarumKiblatContainer,
+                {
+                  transform: [
+                    {
+                      rotate: rotasiKiblat.interpolate({
+                        inputRange: [-360, 360],
+                        outputRange: ['-360deg', '360deg'],
+                      }),
+                    },
+                  ],
+                },
               ]}
             >
-              {isKiblat
-                ? 'Menghadap Kiblat!'
-                : `Putar ${Math.round(selisihArah())}° Lagi`}
-            </Text>
-          </View>
+              <View style={styles.jarumKiblat} />
+            </Animated.View>
 
-          <View style={styles.kompasWrapper}>
-            <View style={styles.kompasRing}>
-              {['U', 'T', 'S', 'B'].map((arah, i) => (
-                <View
-                  key={arah}
-                  style={[
-                    styles.arahLabel,
-                    {
-                      top: i === 0 ? 8 : i === 2 ? undefined : '42%',
-                      bottom: i === 2 ? 8 : undefined,
-                      left: i === 3 ? 8 : i === 0 || i === 2 ? '44%' : undefined,
-                      right: i === 1 ? 8 : undefined,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.arahText,
-                      i === 0 && { color: Colors.red },
-                    ]}
-                  >
-                    {arah}
-                  </Text>
-                </View>
-              ))}
-
-              <Animated.View
-                style={[
-                  styles.jarumContainer,
-                  {
-                    transform: [
-                      {
-                        rotate: rotasiKompas.interpolate({
-                          inputRange: [-360, 360],
-                          outputRange: ['-360deg', '360deg'],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              >
-                <View style={styles.jarumAtas} />
-                <View style={styles.jarumBawah} />
-              </Animated.View>
-
-              <Animated.View
-                style={[
-                  styles.kiblatContainer,
-                  {
-                    transform: [
-                      {
-                        rotate: rotasiKiblat.interpolate({
-                          inputRange: [-360, 360],
-                          outputRange: ['-360deg', '360deg'],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              >
-                <View style={styles.kiblatArrow}>
-                  <Ionicons
-                    name="navigate"
-                    size={32}
-                    color={isKiblat ? Colors.green : Colors.accent}
-                  />
-                </View>
-              </Animated.View>
-
-              <View style={styles.tengah} />
-            </View>
-          </View>
-
-          <View style={styles.derajatRow}>
-            <View style={styles.derajatItem}>
-              <Text style={styles.derajatLabel}>Arah Kiblat</Text>
-              <Text style={styles.derajatValue}>
-                {Math.round(arahKiblat)}°
-              </Text>
-            </View>
-            <View style={styles.derajatDivider} />
-            <View style={styles.derajatItem}>
-              <Text style={styles.derajatLabel}>Kompas</Text>
-              <Text style={styles.derajatValue}>
-                {Math.round(kompas)}°
-              </Text>
-            </View>
-            <View style={styles.derajatDivider} />
-            <View style={styles.derajatItem}>
-              <Text style={styles.derajatLabel}>Selisih</Text>
-              <Text
-                style={[
-                  styles.derajatValue,
-                  { color: isKiblat ? Colors.green : Colors.primary },
-                ]}
-              >
-                {Math.round(selisihArah())}°
-              </Text>
-            </View>
           </View>
         </View>
 
-        <View style={styles.tipsCard}>
-          <Ionicons
-            name="information-circle-outline"
-            size={18}
-            color={Colors.primary}
-          />
+        <View style={styles.bottomSection}>
+          <TouchableOpacity
+            style={styles.kameraButton}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.kameraButtonText}>
+              Tentukan Kiblat Pakai Kamera
+            </Text>
+          </TouchableOpacity>
+
           <Text style={styles.tipsText}>
-            Jauhkan Dari Benda Logam. Panah Emas Menunjukkan Arah Kiblat.
-            Putar Badan Hingga Panah Mengarah Ke Atas
+            Jauhkan Ponsel Dari Benda Logam Agar Kompas Stabil
           </Text>
         </View>
-      </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -425,13 +325,22 @@ const styles = StyleSheet.create({
     padding: 24,
   },
 
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(220, 225, 230, 0.55)',
+  },
+
   header: {
-    backgroundColor: Colors.background,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 54,
+    paddingTop: 60,
     paddingBottom: 12,
   },
   backButton: {
@@ -440,7 +349,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  refreshButton: {
+  menuButton: {
     width: 36,
     height: 36,
     justifyContent: 'center',
@@ -452,192 +361,108 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
 
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    gap: 16,
+  lokasiContainer: {
+    alignItems: 'center',
+    paddingTop: 16,
+    gap: 6,
   },
-
-  lokasiCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 14,
+  lokasiRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-  },
-  lokasiIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.primary + '18',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  lokasiInfo: {
-    flex: 1,
+    gap: 6,
   },
   lokasiKota: {
     fontFamily: 'Poppins-SemiBold',
-    fontSize: 14,
-    color: Colors.text.primary,
-  },
-  lokasiKoord: {
-    fontFamily: 'Poppins-Regular',
-    fontSize: 11,
-    color: Colors.text.light,
-  },
-  akurasiBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  akurasiText: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 11,
-  },
-
-  kompasContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  statusKiblat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 30,
-  },
-  statusKiblatEmoji: {
-    fontSize: 20,
-  },
-  statusKiblatText: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 14,
-  },
-  kompasWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  kompasRing: {
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: Colors.white,
-    borderWidth: 3,
-    borderColor: Colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  arahLabel: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  arahText: {
-    fontFamily: 'Poppins-Bold',
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  jarumContainer: {
-    position: 'absolute',
-    width: 8,
-    height: 160,
-    alignItems: 'center',
-  },
-  jarumAtas: {
-    width: 8,
-    height: 80,
-    backgroundColor: Colors.red,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  jarumBawah: {
-    width: 8,
-    height: 80,
-    backgroundColor: Colors.text.light,
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  kiblatContainer: {
-    position: 'absolute',
-    width: 40,
-    height: 160,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  kiblatArrow: {
-    marginTop: -4,
-  },
-  tengah: {
-    position: 'absolute',
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Colors.text.primary,
-  },
-
-  derajatRow: {
-    flexDirection: 'row',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    width: '100%',
-  },
-  derajatItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-  },
-  derajatDivider: {
-    width: 1,
-    backgroundColor: Colors.border,
-  },
-  derajatLabel: {
-    fontFamily: 'Poppins-Regular',
-    fontSize: 11,
-    color: Colors.text.light,
-  },
-  derajatValue: {
-    fontFamily: 'Poppins-Bold',
     fontSize: 18,
     color: Colors.text.primary,
   },
+  instruksiText: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 14,
+    color: Colors.text.primary,
+  },
 
-  tipsCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: Colors.primary + '12',
-    borderRadius: 12,
-    padding: 14,
-    gap: 10,
+  kompasArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  kompasWrapper: {
+    width: 120,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tengahPutih: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.white,
+    borderWidth: 3,
+    borderColor: Colors.white,
+    zIndex: 10,
+    elevation: 10,
+  },
+  jarumContainer: {
+    position: 'absolute',
+    width: 10,
+    height: 180,
+    alignItems: 'center',
+    zIndex: 5,
+  },
+  jarumAtas: {
+    width: 10,
+    height: 90,
+    backgroundColor: Colors.red,
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+  },
+  jarumBawah: {
+    width: 10,
+    height: 90,
+    backgroundColor: '#3A5FD9',
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
+  },
+  jarumKiblatContainer: {
+    position: 'absolute',
+    width: 140,
+    height: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+  jarumKiblat: {
+    width: 140,
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 4,
+  },
+
+  bottomSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    gap: 12,
+    alignItems: 'center',
+  },
+  kameraButton: {
+    width: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  kameraButtonText: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 15,
+    color: Colors.white,
   },
   tipsText: {
-    flex: 1,
     fontFamily: 'Poppins-Regular',
     fontSize: 12,
     color: Colors.text.secondary,
-    lineHeight: 18,
+    textAlign: 'center',
   },
 
   loadingText: {
