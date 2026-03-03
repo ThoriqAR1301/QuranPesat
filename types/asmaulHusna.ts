@@ -1,6 +1,6 @@
 export interface AsmaulHusna {
-  index: number;
-  arab: string;
+  urutan: number;
   latin: string;
+  arab: string;
   arti: string;
 }

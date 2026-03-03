@@ -9,8 +9,6 @@ export const getAsmaulHusnaList = async (): Promise<AsmaulHusna[]> => {
 
     if (Array.isArray(data)) return data;
     else if (Array.isArray(data?.data)) return data.data;
-    else if (Array.isArray(data?.asmaul_husna)) return data.asmaul_husna;
-    else if (Array.isArray(data?.result)) return data.result;
     else return [];
   } catch (error) {
     console.error('getAsmaulHusnaList error:', error);
