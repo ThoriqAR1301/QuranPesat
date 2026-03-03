@@ -14,23 +14,23 @@ import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { getHijriyahDate } from '@/services/hijriyahService';
 
-const WAKTU_SHOLAT = [
-  { nama: 'Subuh', waktu: '04:43', icon: 'partly-sunny-outline' },
-  { nama: 'Dzuhur', waktu: '12:09', icon: 'sunny-outline' },
-  { nama: 'Ashar', waktu: '15:12', icon: 'cloud-outline' },
-  { nama: 'Maghrib', waktu: '18:15', icon: 'cloudy-night-outline' },
-  { nama: "Isya'", waktu: '19:24', icon: 'moon-outline' },
+const JADWAL_SHOLAT = [
+  { nama: 'Subuh',    jam: 4,  menit: 43, icon: 'partly-sunny-outline' },
+  { nama: 'Dzuhur',  jam: 12, menit: 9,  icon: 'sunny-outline'         },
+  { nama: 'Ashar',   jam: 15, menit: 12, icon: 'cloud-outline'         },
+  { nama: 'Maghrib', jam: 18, menit: 15, icon: 'cloudy-night-outline'  },
+  { nama: "Isya'",   jam: 19, menit: 24, icon: 'moon-outline'          },
 ];
 
 const MENU_BERANDA = [
-  { id: 1, nama: 'Al-Quran', icon: 'book-outline', route: '/(tabs)/quran' },
-  { id: 2, nama: 'Doa Harian', icon: 'chatbubble-outline', route: '/menu/doa' },
-  { id: 3, nama: 'Dzikir Duha', icon: 'heart-outline', route: '/menu/dzikir' },
-  { id: 4, nama: 'Hadits', icon: 'reader-outline', route: '/menu/hadits' },
-  { id: 5, nama: 'Arah Kiblat', icon: 'compass-outline', route: '/menu/arah-kiblat' },
-  { id: 6, nama: 'Donasi', icon: 'gift-outline', route: '/menu/donasi' },
-  { id: 7, nama: 'Asmaul Husna', icon: 'albums-outline', route: '/menu/asmaul-husna' },
-  { id: 8, nama: 'Lainnya', icon: 'grid-outline', route: '/menu/lainnya' },
+  { id: 1, nama: 'Al-Quran',     icon: 'book-outline',       route: '/(tabs)/quran'      },
+  { id: 2, nama: 'Doa Harian',   icon: 'chatbubble-outline', route: '/menu/doa'          },
+  { id: 3, nama: 'Dzikir',  icon: 'heart-outline',      route: '/menu/dzikir'       },
+  { id: 4, nama: 'Hadits',       icon: 'reader-outline',     route: '/menu/hadits'       },
+  { id: 5, nama: 'Arah Kiblat',  icon: 'compass-outline',    route: '/menu/arah-kiblat'  },
+  { id: 6, nama: 'Donasi',       icon: 'gift-outline',       route: '/menu/donasi'       },
+  { id: 7, nama: 'Asmaul Husna', icon: 'albums-outline',     route: '/menu/asmaul-husna' },
+  { id: 8, nama: 'Lainnya',      icon: 'grid-outline',       route: '/menu/lainnya'      },
 ];
 
 const DOA_SECTION = [
@@ -54,16 +54,68 @@ export default function BerandaScreen() {
   const [hijriyah, setHijriyah] = useState('12 Ramadan 1447 H');
   const [lokasi] = useState('Bogor, Indonesia');
   const [jamSekarang, setJamSekarang] = useState('');
-  const [countdown] = useState('07:29:10');
+  const [countdown, setCountdown] = useState('');
+  const [nextSholat, setNextSholat] = useState('Subuh');
+
+  const hitungCountdown = () => {
+    const now = new Date();
+    const totalDetikNow =
+      now.getHours() * 3600 +
+      now.getMinutes() * 60 +
+      now.getSeconds();
+
+    let selisihDetik = 0;
+    let nextSholatFound = JADWAL_SHOLAT[0];
+
+    for (const sholat of JADWAL_SHOLAT) {
+      const totalDetikSholat = sholat.jam * 3600 + sholat.menit * 60;
+      if (totalDetikSholat > totalDetikNow) {
+        nextSholatFound = sholat;
+        selisihDetik = totalDetikSholat - totalDetikNow;
+        break;
+      }
+    }
+
+    if (selisihDetik === 0) {
+      const subuh = JADWAL_SHOLAT[0];
+      selisihDetik =
+        24 * 3600 -
+        totalDetikNow +
+        subuh.jam * 3600 +
+        subuh.menit * 60;
+      nextSholatFound = subuh;
+    }
+
+    const jam = Math.floor(selisihDetik / 3600)
+      .toString()
+      .padStart(2, '0');
+    const menit = Math.floor((selisihDetik % 3600) / 60)
+      .toString()
+      .padStart(2, '0');
+    const detik = (selisihDetik % 60).toString().padStart(2, '0');
+
+    setCountdown(`${jam}:${menit}:${detik}`);
+    setNextSholat(nextSholatFound.nama);
+  };
+
+  const updateJam = () => {
+    const now = new Date();
+    const jam = now.getHours().toString().padStart(2, '0');
+    const menit = now.getMinutes().toString().padStart(2, '0');
+    setJamSekarang(`${jam}.${menit}`);
+  };
 
   useEffect(() => {
     setHijriyah(getHijriyahDate());
+
+    updateJam();
+    hitungCountdown();
+
     const interval = setInterval(() => {
-      const now = new Date();
-      const jam = now.getHours().toString().padStart(2, '0');
-      const menit = now.getMinutes().toString().padStart(2, '0');
-      setJamSekarang(`${jam}.${menit}`);
+      updateJam();
+      hitungCountdown();
     }, 1000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -85,17 +137,23 @@ export default function BerandaScreen() {
               <Text style={styles.lokasiText}>{lokasi}</Text>
             </View>
             <TouchableOpacity>
-              <Ionicons name="notifications-outline" size={26} color={Colors.white} />
+              <Ionicons
+                name="notifications-outline"
+                size={26}
+                color={Colors.white}
+              />
             </TouchableOpacity>
           </View>
 
           <View style={styles.jamContainer}>
             <Text style={styles.jamText}>{jamSekarang}</Text>
-            <Text style={styles.countdownText}>Subuh Dalam  {countdown}</Text>
+            <Text style={styles.countdownText}>
+              {nextSholat} Dalam  {countdown}
+            </Text>
           </View>
 
           <View style={styles.waktuSholatRow}>
-            {WAKTU_SHOLAT.map((item, index) => (
+            {JADWAL_SHOLAT.map((item, index) => (
               <View key={index} style={styles.waktuSholatItem}>
                 <Ionicons
                   name={item.icon as any}
@@ -103,7 +161,10 @@ export default function BerandaScreen() {
                   color="rgba(255,255,255,0.85)"
                 />
                 <Text style={styles.waktuSholatNama}>{item.nama}</Text>
-                <Text style={styles.waktuSholatWaktu}>{item.waktu}</Text>
+                <Text style={styles.waktuSholatWaktu}>
+                  {item.jam.toString().padStart(2, '0')}:
+                  {item.menit.toString().padStart(2, '0')}
+                </Text>
               </View>
             ))}
           </View>
@@ -117,7 +178,11 @@ export default function BerandaScreen() {
               placeholder="Cari Surat, Doa, Artikel, Hadits ..."
               placeholderTextColor={Colors.text.light}
             />
-            <Ionicons name="search-outline" size={20} color={Colors.text.light} />
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color={Colors.text.light}
+            />
           </View>
 
           <View style={styles.menuGrid}>
@@ -152,7 +217,9 @@ export default function BerandaScreen() {
 
           <View style={styles.doaSection}>
             <View style={styles.doaSectionHeader}>
-              <Text style={styles.doaSectionTitle}>Aminkan Doa Saudaramu</Text>
+              <Text style={styles.doaSectionTitle}>
+                Aminkan Doa Saudaramu
+              </Text>
               <TouchableOpacity>
                 <Text style={styles.doaSectionLink}>Buat Doa +</Text>
               </TouchableOpacity>
@@ -194,7 +261,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-
   header: {
     height: 320,
     justifyContent: 'flex-end',
@@ -208,8 +274,6 @@ const styles = StyleSheet.create({
   headerOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(20, 30, 40, 0.45)',
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
   },
   headerTop: {
     flexDirection: 'row',
@@ -262,12 +326,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-SemiBold',
     fontSize: 12,
   },
-
   content: {
     paddingHorizontal: 20,
     paddingTop: 16,
   },
-
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -288,7 +350,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.text.primary,
   },
-
   menuGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -315,7 +376,6 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     textAlign: 'center',
   },
-
   ramadanCard: {
     backgroundColor: Colors.ramadanCard,
     borderRadius: 16,
@@ -339,7 +399,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-
   doaSection: {
     marginBottom: 20,
   },

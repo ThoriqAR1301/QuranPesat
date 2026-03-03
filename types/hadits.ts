@@ -1,6 +1,6 @@
 export interface Hadits {
-  id: number;
+  no: string;
   judul: string;
   arab: string;
-  terjemahan: string;
+  indo: string;
 }

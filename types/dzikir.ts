@@ -1,8 +1,6 @@
 export interface Dzikir {
-  id: number;
-  waktu: string;
+  type: string;
   arab: string;
-  latin: string;
-  artinya: string;
-  faedah?: string;
+  indo: string;
+  ulang: string;
 }
